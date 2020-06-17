@@ -621,8 +621,9 @@ namespace AutoUpdaterDotNET
         public static bool DownloadUpdate(UpdateInfoEventArgs args)
         {
             Collection collection = new Collection();
-            var updateList = collection.ReadUpdateFile(args.updateListUrl);
-            
+            var localFileLsit = collection.GetUpdateFileList(Environment.CurrentDirectory);
+            var serverList = collection.ReadUpdateFile(args.updateListUrl);
+            var updateList = collection.FileCompair(localFileLsit, serverList);
 
             using (var downloadDialog = new DownloadUpdateDialog(args, updateList))
             {

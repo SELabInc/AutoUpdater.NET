@@ -39,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-    <OutputPath>build\lib\net20</OutputPath>
+    <OutputPath>..\..\QI4A\QI4A.Updater\</OutputPath>
     <DocumentationFile>build\lib\net20\AutoUpdater.NET.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET35' ">

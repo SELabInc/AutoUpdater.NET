@@ -10,6 +10,45 @@ namespace QI4A.ZIP
     /// </summary>
     public class Collection
     {
+        public List<FileModel> FileCompair(List<FileInfo> localList, List<FileModel> serverList)
+        {
+            Collection collection = new Collection();
+            List<FileModel> updateList = new List<FileModel>();
+            
+
+            for (int i = 0; i < serverList.Count; i++)
+            {
+                bool newFileCheck = true;
+                var serverItem = serverList[i];
+
+                for (int j = 0; j < localList.Count; j++)
+                {
+                    var localItem = localList[j];
+                    string localFileName = collection.DirFileName(localItem.FullName);
+
+                    if (localFileName.Equals(serverItem.Name))
+                    {
+                        newFileCheck = false;
+                        bool dateCheck = localItem.LastWriteTime.ToString() == serverItem.Date;
+                        bool sizeCheck = localItem.Length.ToString() == serverItem.Size;
+
+                        if (!dateCheck || !sizeCheck)
+                        {
+                            updateList.Add(serverItem);
+                        }
+
+                        break;
+                    }
+                }
+
+                if (newFileCheck)
+                {
+                    updateList.Add(serverItem);
+                }
+            }
+
+            return updateList;
+        }
         public List<FileInfo> GetUpdateFileList(string path)
         {
             List<FileInfo> fileList = new List<FileInfo>();

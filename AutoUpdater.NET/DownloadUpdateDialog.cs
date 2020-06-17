@@ -22,6 +22,7 @@ namespace AutoUpdaterDotNET
         private MyWebClient _webClient;
         private List<FileModel> _updateList;
         private DateTime _startedAt;
+        private List<string> updateList = new List<string>();
         delegate void ProgVarCall(int var);
 
         public DownloadUpdateDialog(UpdateInfoEventArgs args, List<FileModel> updateList)
@@ -41,6 +42,7 @@ namespace AutoUpdaterDotNET
         {
             downloadCount = 0;
             downloadMaxCount = 0;
+            updateList.Clear();
         }
 
         public void Download(object sender, EventArgs e)
@@ -124,10 +126,24 @@ namespace AutoUpdaterDotNET
             }
 
             downloadCount++;
+            updateList.Add(fileFullPath);
+
             if(downloadCount == downloadMaxCount)
             {
+                MakeCompleteUpdateListFile();
                 this.Close();
                 Application.Restart();
+            }
+        }
+
+        private void MakeCompleteUpdateListFile()
+        {
+            using (StreamWriter sw = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "update.txt")))
+            {
+                foreach(var name in updateList)
+                {
+                    sw.WriteLine(name);
+                }
             }
         }
 

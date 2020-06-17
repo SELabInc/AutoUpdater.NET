@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,24 +10,26 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
 using AutoUpdaterDotNET.Properties;
+using QI4A.ZIP;
 
 namespace AutoUpdaterDotNET
 {
     internal partial class DownloadUpdateDialog : Form
     {
         private readonly UpdateInfoEventArgs _args;
-
-        private string _tempFile;
-
+        private int downloadCount = 0;
+        private int downloadMaxCount = 0;
         private MyWebClient _webClient;
-
+        private List<FileModel> _updateList;
         private DateTime _startedAt;
+        delegate void ProgVarCall(int var);
 
-        public DownloadUpdateDialog(UpdateInfoEventArgs args)
+        public DownloadUpdateDialog(UpdateInfoEventArgs args, List<FileModel> updateList)
         {
             InitializeComponent();
 
             _args = args;
+            _updateList = updateList;
 
             if (AutoUpdater.Mandatory && AutoUpdater.UpdateMode == Mode.ForcedDownload)
             {
@@ -34,189 +37,110 @@ namespace AutoUpdaterDotNET
             }
         }
 
-        private void DownloadUpdateDialogLoad(object sender, EventArgs e)
+        private void DownloadSet()
         {
-            var uri = new Uri(_args.DownloadURL);
+            downloadCount = 0;
+            downloadMaxCount = 0;
+        }
 
-            _webClient = AutoUpdater.GetWebClient(uri, AutoUpdater.BasicAuthDownload);
+        public void Download(object sender, EventArgs e)
+        {
+            DownloadSet();
 
-            if (string.IsNullOrEmpty(AutoUpdater.DownloadPath))
+            string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36";
+            downloadMaxCount = _updateList.Count;
+
+            foreach (var updateFile in _updateList)
             {
-                _tempFile = Path.GetTempFileName();
-            }
-            else
-            {
-                _tempFile = Path.Combine(AutoUpdater.DownloadPath, $"{Guid.NewGuid().ToString()}.tmp");
-                if (!Directory.Exists(AutoUpdater.DownloadPath))
+                string fileFullName = updateFile.Name;
+                string fileName = fileFullName;
+                string fileDir = string.Empty;
+
+                var fileSplit = fileFullName.Split('\\');
+                if (fileSplit.Length != 1)
                 {
-                    Directory.CreateDirectory(AutoUpdater.DownloadPath);
+                    fileName = fileSplit[fileSplit.Length - 1];
+                    fileDir = fileFullName.Substring(0, fileFullName.Length - fileName.Length);
+                    
+                    string tmpDirPath = Path.GetTempPath() + fileDir;
+                    DirectoryInfo di = new DirectoryInfo(tmpDirPath);
+                    if (!di.Exists)
+                    {
+                        di.Create();
+                    }
+
+                }
+
+                var uri = new Uri(_args.DownloadURL + updateFile.Name);
+                var _tempFile = Path.Combine(Path.GetTempPath(), fileFullName);
+
+                WebClient webClient = new WebClient();
+                webClient.DownloadFileCompleted += WebClient_DownloadFileCompleted;
+                webClient.DownloadProgressChanged += OnDownloadProgressChanged;
+                webClient.QueryString.Add("fileName", fileName);
+                webClient.QueryString.Add("fileDir", fileDir);
+                webClient.QueryString.Add("tmpFileName", _tempFile);
+                webClient.Headers[HttpRequestHeader.UserAgent] = userAgent;
+                webClient.DownloadFileAsync(uri, _tempFile);
+            }
+
+        }
+
+
+        private void WebClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            var fileName = ((System.Net.WebClient)(sender)).QueryString["fileName"];
+            var fileDir = ((System.Net.WebClient)(sender)).QueryString["fileDir"];
+            var tmpFileName = ((System.Net.WebClient)(sender)).QueryString["tmpFileName"];
+            var filePath = Environment.CurrentDirectory;
+            var fileFullPath = Path.Combine(filePath, fileName);
+     
+            if(fileDir.Length != 0)
+            {
+                fileFullPath = string.Format(@"{0}\{1}{2}", filePath, fileDir, fileName);
+                DirectoryInfo di = new DirectoryInfo(filePath + fileDir);
+                if (di.Exists == false)
+                {
+                    di.Create();
                 }
             }
 
-            _webClient.DownloadProgressChanged += OnDownloadProgressChanged;
+            if(File.Exists(fileFullPath))
+            {
+                string deleteFile = fileFullPath + ".tmp";
+                if(File.Exists(deleteFile))
+                {
+                    File.SetAttributes(deleteFile, FileAttributes.Normal);
+                    File.Delete(deleteFile);
+                }
 
-            _webClient.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
+                File.Move(fileFullPath, deleteFile);
+                File.Copy(tmpFileName, fileFullPath, true);
+                File.SetAttributes(deleteFile, FileAttributes.Normal);
+            }
+            else
+            {
+                File.Move(tmpFileName, fileFullPath);
+            }
 
-            _webClient.DownloadFileAsync(uri, _tempFile);
+            downloadCount++;
+            if(downloadCount == downloadMaxCount)
+            {
+                this.Close();
+                Application.Restart();
+            }
+        }
+
+
+        private void ProgValueSetting(int var)
+        {
+            progressBar.Value = var;
         }
 
         private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            if (_startedAt == default(DateTime))
-            {
-                _startedAt = DateTime.Now;
-            }
-            else
-            {
-                var timeSpan = DateTime.Now - _startedAt;
-                long totalSeconds = (long) timeSpan.TotalSeconds;
-                if (totalSeconds > 0)
-                {
-                    var bytesPerSecond = e.BytesReceived / totalSeconds;
-                    labelInformation.Text =
-                        string.Format(Resources.DownloadSpeedMessage, BytesToString(bytesPerSecond));
-                }
-            }
-
-            labelSize.Text = $@"{BytesToString(e.BytesReceived)} / {BytesToString(e.TotalBytesToReceive)}";
-            progressBar.Value = e.ProgressPercentage;
-        }
-
-        private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs asyncCompletedEventArgs)
-        {
-            if (asyncCompletedEventArgs.Cancelled)
-            {
-                return;
-            }
-
-            try
-            {
-                if (asyncCompletedEventArgs.Error != null)
-                {
-                    throw asyncCompletedEventArgs.Error;
-                }
-
-                if (_args.CheckSum != null)
-                {
-                    CompareChecksum(_tempFile, _args.CheckSum);
-                }
-
-                ContentDisposition contentDisposition = null;
-                if (_webClient.ResponseHeaders["Content-Disposition"] != null)
-                {
-                    contentDisposition = new ContentDisposition(_webClient.ResponseHeaders["Content-Disposition"]);
-                }
-
-                var fileName = string.IsNullOrEmpty(contentDisposition?.FileName)
-                    ? Path.GetFileName(_webClient.ResponseUri.LocalPath)
-                    : contentDisposition.FileName;
-
-                var tempPath =
-                    Path.Combine(
-                        string.IsNullOrEmpty(AutoUpdater.DownloadPath) ? Path.GetTempPath() : AutoUpdater.DownloadPath,
-                        fileName);
-
-                if (File.Exists(tempPath))
-                {
-                    File.Delete(tempPath);
-                }
-
-                File.Move(_tempFile, tempPath);
-
-                string installerArgs = null;
-                if (!string.IsNullOrEmpty(_args.InstallerArgs))
-                {
-                    installerArgs = _args.InstallerArgs.Replace("%path%",
-                        Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName));
-                }
-
-                var processStartInfo = new ProcessStartInfo
-                {
-                    FileName = tempPath,
-                    UseShellExecute = true,
-                    Arguments = installerArgs
-                };
-
-                var extension = Path.GetExtension(tempPath);
-                if (extension.Equals(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    string installerPath = Path.Combine(Path.GetDirectoryName(tempPath), "ZipExtractor.exe");
-
-                    File.WriteAllBytes(installerPath, Resources.ZipExtractor);
-
-                    string executablePath = Process.GetCurrentProcess().MainModule.FileName;
-                    string extractionPath = Path.GetDirectoryName(executablePath);
-
-                    if (!string.IsNullOrEmpty(AutoUpdater.InstallationPath) &&
-                        Directory.Exists(AutoUpdater.InstallationPath))
-                    {
-                        extractionPath = AutoUpdater.InstallationPath;
-                    }
-
-                    StringBuilder arguments =
-                        new StringBuilder($"\"{tempPath}\" \"{extractionPath}\" \"{executablePath}\"");
-                    string[] args = Environment.GetCommandLineArgs();
-                    for (int i = 1; i < args.Length; i++)
-                    {
-                        if (i.Equals(1))
-                        {
-                            arguments.Append(" \"");
-                        }
-
-                        arguments.Append(args[i]);
-                        arguments.Append(i.Equals(args.Length - 1) ? "\"" : " ");
-                    }
-
-                    processStartInfo = new ProcessStartInfo
-                    {
-                        FileName = installerPath,
-                        UseShellExecute = true,
-                        Arguments = arguments.ToString()
-                    };
-                }
-                else if (extension.Equals(".msi", StringComparison.OrdinalIgnoreCase))
-                {
-                    processStartInfo = new ProcessStartInfo
-                    {
-                        FileName = "msiexec",
-                        Arguments = $"/i \"{tempPath}\""
-                    };
-                    if (!string.IsNullOrEmpty(installerArgs))
-                    {
-                        processStartInfo.Arguments += " " + installerArgs;
-                    }
-                }
-
-                if (AutoUpdater.RunUpdateAsAdmin)
-                {
-                    processStartInfo.Verb = "runas";
-                }
-
-                try
-                {
-                    Process.Start(processStartInfo);
-                }
-                catch (Win32Exception exception)
-                {
-                    if (exception.NativeErrorCode == 1223)
-                    {
-                        _webClient = null;
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, e.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _webClient = null;
-            }
-            finally
-            {
-                Close();
-            }
+            int per = (int)(((double)downloadCount / (double)downloadMaxCount) * 100);
+            progressBar.Invoke(new ProgVarCall(ProgValueSetting), per);
         }
 
         private static string BytesToString(long byteCount)

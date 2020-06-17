@@ -72,6 +72,11 @@ namespace AutoUpdaterDotNET
         [XmlElement("checksum")]
         public CheckSum CheckSum { get; set; }
 
+
+        [XmlElement("updateListUrl")]
+        public string updateListUrl { get; set; }
+
+
         /// <summary>
         ///     Hash algorithm that generated the checksum provided in the XML file.
         /// </summary>

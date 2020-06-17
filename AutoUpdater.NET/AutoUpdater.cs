@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using AutoUpdaterDotNET.Properties;
+using QI4A.ZIP;
 
 namespace AutoUpdaterDotNET
 {
@@ -619,7 +620,11 @@ namespace AutoUpdaterDotNET
         /// </summary>
         public static bool DownloadUpdate(UpdateInfoEventArgs args)
         {
-            using (var downloadDialog = new DownloadUpdateDialog(args))
+            Collection collection = new Collection();
+            var updateList = collection.ReadUpdateFile(args.updateListUrl);
+            
+
+            using (var downloadDialog = new DownloadUpdateDialog(args, updateList))
             {
                 try
                 {

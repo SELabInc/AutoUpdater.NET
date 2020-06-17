@@ -98,7 +98,7 @@ namespace AutoUpdaterDotNET
             if(fileDir.Length != 0)
             {
                 fileFullPath = string.Format(@"{0}\{1}{2}", filePath, fileDir, fileName);
-                DirectoryInfo di = new DirectoryInfo(filePath + fileDir);
+                DirectoryInfo di = new DirectoryInfo(Path.Combine(filePath, fileDir));
                 if (di.Exists == false)
                 {
                     di.Create();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -240,6 +241,22 @@ namespace AutoUpdaterDotNET
             Start(appCast, myAssembly);
         }
 
+
+        public static void DeleteTempFileList(string path)
+        {
+            System.IO.DirectoryInfo dirInfo = new DirectoryInfo(path);
+            foreach (var file in dirInfo.GetFiles("*.delTmp"))
+            {
+                File.Delete(file.FullName);
+            }
+
+            string[] dirs = Directory.GetDirectories(path);
+            foreach (string dir in dirs)
+            {
+                DeleteTempFileList(dir);
+            }
+        }
+
         /// <summary>
         ///     Start checking for new version of application and display a dialog to the user if update is available.
         /// </summary>
@@ -268,6 +285,8 @@ namespace AutoUpdaterDotNET
                 Running = true;
 
                 AppCastURL = appCast;
+
+                DeleteTempFileList(Environment.CurrentDirectory);
 
                 IsWinFormsApplication = Application.MessageLoop;
 

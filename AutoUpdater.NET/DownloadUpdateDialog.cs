@@ -109,7 +109,7 @@ namespace AutoUpdaterDotNET
 
             if(File.Exists(fileFullPath))
             {
-                string deleteFile = fileFullPath + ".tmp";
+                string deleteFile = fileFullPath + ".delTmp";
                 if(File.Exists(deleteFile))
                 {
                     File.SetAttributes(deleteFile, FileAttributes.Normal);
@@ -118,7 +118,6 @@ namespace AutoUpdaterDotNET
 
                 File.Move(fileFullPath, deleteFile);
                 File.Copy(tmpFileName, fileFullPath, true);
-                File.SetAttributes(deleteFile, FileAttributes.Normal);
             }
             else
             {

@@ -1,5 +1,8 @@
 ﻿namespace QI4A.ZIP
 {
+    /// <summary>
+    /// 업데이트 파일 비교 모델
+    /// </summary>
     public class FileModel
     {
         /// <summary>
@@ -16,5 +19,10 @@
         /// 파일 크기
         /// </summary>
         public string Size { get; set; }
+
+        /// <summary>
+        /// 업데이트 파일의 고유값
+        /// </summary>
+        public string Hash { get; set; }
     }
 }

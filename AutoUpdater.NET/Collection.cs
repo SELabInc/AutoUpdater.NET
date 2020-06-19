@@ -16,12 +16,11 @@ namespace QI4A.ZIP
         /// <param name="localList"></param>
         /// <param name="serverList"></param>
         /// <returns></returns>
-        public List<FileModel> FileCompair(List<FileInfo> localList, List<FileModel> serverList)
+        public List<FileModel> FileCompair(List<FileModel> localList, List<FileModel> serverList)
         {
             Collection collection = new Collection();
             List<FileModel> updateList = new List<FileModel>();
             
-
             for (int i = 0; i < serverList.Count; i++)
             {
                 bool newFileCheck = true;
@@ -30,15 +29,14 @@ namespace QI4A.ZIP
                 for (int j = 0; j < localList.Count; j++)
                 {
                     var localItem = localList[j];
-                    string localFileName = collection.DirFileName(localItem.FullName);
+                    string localFileName = localItem.Name;
 
                     if (localFileName.Equals(serverItem.Name))
                     {
                         newFileCheck = false;
-                        bool dateCheck = localItem.LastWriteTime.ToString() == serverItem.Date;
-                        bool sizeCheck = localItem.Length.ToString() == serverItem.Size;
 
-                        if (!dateCheck || !sizeCheck)
+                        bool hashCheck = localItem.Hash == serverItem.Hash;
+                        if (!hashCheck)
                         {
                             updateList.Add(serverItem);
                         }
@@ -150,12 +148,14 @@ namespace QI4A.ZIP
                 string name = node.Attributes["Name"].Value;
                 string date = node["Date"].InnerText;
                 string size = node["Size"].InnerText;
+                string hash = node["Hash"].InnerText;
 
                 FileModel model = new FileModel
                 {
                     Name = name,
                     Date = date,
-                    Size = size
+                    Size = size,
+                    Hash = hash
                 };
                 fileModels.Add(model);
             }

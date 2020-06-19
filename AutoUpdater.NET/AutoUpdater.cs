@@ -242,6 +242,10 @@ namespace AutoUpdaterDotNET
         }
 
 
+        /// <summary>
+        /// 임시 파일 삭제
+        /// </summary>
+        /// <param name="path"></param>
         public static void DeleteTempFileList(string path)
         {
             System.IO.DirectoryInfo dirInfo = new DirectoryInfo(path);
@@ -640,9 +644,11 @@ namespace AutoUpdaterDotNET
         public static bool DownloadUpdate(UpdateInfoEventArgs args)
         {
             Collection collection = new Collection();
-            var localFileLsit = collection.GetUpdateFileList(Environment.CurrentDirectory);
+            //var localFileLsit = collection.GetUpdateFileList(Environment.CurrentDirectory);
+            var localFileList = collection.ReadUpdateFile(Path.Combine(Environment.CurrentDirectory, "UpdateList.xml"));
             var serverList = collection.ReadUpdateFile(args.updateListUrl);
-            var updateList = collection.FileCompair(localFileLsit, serverList);
+            var updateList = collection.FileCompair(localFileList, serverList);
+
 
             using (var downloadDialog = new DownloadUpdateDialog(args, updateList))
             {

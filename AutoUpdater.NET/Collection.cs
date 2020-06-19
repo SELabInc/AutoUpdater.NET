@@ -10,6 +10,12 @@ namespace QI4A.ZIP
     /// </summary>
     public class Collection
     {
+        /// <summary>
+        /// 업데이트 할 파일들의 비교
+        /// </summary>
+        /// <param name="localList"></param>
+        /// <param name="serverList"></param>
+        /// <returns></returns>
         public List<FileModel> FileCompair(List<FileInfo> localList, List<FileModel> serverList)
         {
             Collection collection = new Collection();
@@ -49,6 +55,12 @@ namespace QI4A.ZIP
 
             return updateList;
         }
+
+        /// <summary>
+        /// 업데이트 할 파일들의 리스트 수집
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public List<FileInfo> GetUpdateFileList(string path)
         {
             List<FileInfo> fileList = new List<FileInfo>();
@@ -100,6 +112,11 @@ namespace QI4A.ZIP
             xml.Save(AppDomain.CurrentDomain.BaseDirectory + @"\UpdateList.xml");
         }
 
+        /// <summary>
+        /// 빌드 모드에 따른 폴더 구분
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public string DirFileName(string filePath)
         {
             string buildMode = string.Empty;
@@ -115,6 +132,11 @@ namespace QI4A.ZIP
             return dirFilePath;
         }
 
+        /// <summary>
+        /// xml의 데이터 읽기
+        /// </summary>
+        /// <param name="urlPath"></param>
+        /// <returns></returns>
         public List<FileModel> ReadUpdateFile(string urlPath)
         {
             List<FileModel> fileModels = new List<FileModel>();

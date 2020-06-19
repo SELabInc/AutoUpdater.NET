@@ -73,6 +73,9 @@ namespace AutoUpdaterDotNET
         public CheckSum CheckSum { get; set; }
 
 
+        /// <summary>
+        /// 업데이트 리스트를 가져올 경로
+        /// </summary>
         [XmlElement("updateListUrl")]
         public string updateListUrl { get; set; }
 

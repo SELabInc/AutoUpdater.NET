@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Mime;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
@@ -19,9 +20,9 @@ namespace AutoUpdaterDotNET
         private readonly UpdateInfoEventArgs _args;
         private int downloadCount = 0;
         private int downloadMaxCount = 0;
+        private bool updateSuccesCheck = false;
         private MyWebClient _webClient;
         private List<FileModel> _updateList;
-        private DateTime _startedAt;
         private List<string> updateList = new List<string>();
         delegate void ProgVarCall(int var);
 
@@ -50,6 +51,11 @@ namespace AutoUpdaterDotNET
             DownloadSet();
 
             string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36";
+            _updateList.Add(new FileModel()
+            {
+                Name = "UpdateList.xml"
+            });
+
             downloadMaxCount = _updateList.Count;
 
             foreach (var updateFile in _updateList)
@@ -130,8 +136,8 @@ namespace AutoUpdaterDotNET
             if(downloadCount == downloadMaxCount)
             {
                 MakeCompleteUpdateListFile();
-                this.Close();
-                Application.Restart();
+                updateSuccesCheck = true;
+                this.DialogResult = DialogResult.OK;
             }
         }
 
@@ -154,8 +160,15 @@ namespace AutoUpdaterDotNET
 
         private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            int per = (int)(((double)downloadCount / (double)downloadMaxCount) * 100);
-            progressBar.Invoke(new ProgVarCall(ProgValueSetting), per);
+            try
+            {
+                int per = (int)(((double)downloadCount / (double)downloadMaxCount) * 100);
+                progressBar.Invoke(new ProgVarCall(ProgValueSetting), per);
+            }
+            catch(Exception error)
+            {
+                MessageBox.Show("Update False : " + error.Message);
+            }
         }
 
         private static string BytesToString(long byteCount)
@@ -194,13 +207,8 @@ namespace AutoUpdaterDotNET
 
         private void DownloadUpdateDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (_webClient == null)
+            if (updateSuccesCheck == false)
             {
-                DialogResult = DialogResult.Cancel;
-            }
-            else if (_webClient.IsBusy)
-            {
-                _webClient.CancelAsync();
                 DialogResult = DialogResult.Cancel;
             }
             else

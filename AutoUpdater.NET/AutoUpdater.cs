@@ -284,6 +284,7 @@ namespace AutoUpdaterDotNET
                 _remindLaterTimer = null;
             }
 
+            LogFile.Log("Update Version Check.");
             if (!Running && _remindLaterTimer == null)
             {
                 Running = true;
@@ -645,15 +646,20 @@ namespace AutoUpdaterDotNET
         {
             Collection collection = new Collection();
             //var localFileLsit = collection.GetUpdateFileList(Environment.CurrentDirectory);
+            LogFile.Log("Local File Check");
             var localFileList = collection.ReadUpdateFile(Path.Combine(Environment.CurrentDirectory, "UpdateList.xml"));
-            var serverList = collection.ReadUpdateFile(args.updateListUrl);
-            var updateList = collection.FileCompair(localFileList, serverList);
 
+            LogFile.Log("Server File Check");
+            var serverList = collection.ReadUpdateFile(args.updateListUrl);
+
+            LogFile.Log("Get Update List");
+            var updateList = collection.FileCompair(localFileList, serverList);
 
             using (var downloadDialog = new DownloadUpdateDialog(args, updateList))
             {
                 try
                 {
+                    LogFile.Log("Update Start");
                     return downloadDialog.ShowDialog().Equals(DialogResult.OK);
                 }
                 catch (TargetInvocationException)

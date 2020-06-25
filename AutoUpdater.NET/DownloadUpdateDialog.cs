@@ -49,7 +49,6 @@ namespace AutoUpdaterDotNET
         public void Download(object sender, EventArgs e)
         {
             DownloadSet();
-
             string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36";
             _updateList.Add(new FileModel()
             {
@@ -58,6 +57,7 @@ namespace AutoUpdaterDotNET
 
             downloadMaxCount = _updateList.Count;
 
+            LogFile.Log("Update File Download Start. " + _updateList.Count + "\n");
             foreach (var updateFile in _updateList)
             {
                 string fileFullName = updateFile.Name;
@@ -138,6 +138,7 @@ namespace AutoUpdaterDotNET
                 MakeCompleteUpdateListFile();
                 updateSuccesCheck = true;
                 this.DialogResult = DialogResult.OK;
+                MessageBox.Show("Update Completed.");
             }
         }
 

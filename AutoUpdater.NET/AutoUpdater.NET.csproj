@@ -42,26 +42,6 @@
     <OutputPath>..\..\QI4A\QI4A.Updater\</OutputPath>
     <DocumentationFile>build\lib\net20\AutoUpdater.NET.XML</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET35' ">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net35</OutputPath>
-    <DocumentationFile>bin\Debug\net35\AutoUpdater.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-NET35' ">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>build\lib\net35</OutputPath>
-    <DocumentationFile>build\lib\net35\AutoUpdater.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET40' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net40</OutputPath>
-    <DocumentationFile>bin\Debug\net40\AutoUpdater.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-NET40' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>build\lib\net40</OutputPath>
-    <DocumentationFile>build\lib\net40\AutoUpdater.NET.XML</DocumentationFile>
-  </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
@@ -113,6 +93,7 @@
     <Compile Include="IAuthentication.cs" />
     <Compile Include="IPersistenceProvider.cs" />
     <Compile Include="JsonFilePersistenceProvider.cs" Condition=" '$(WPFSupported)' And '$(TargetFrameworkVersion)' != 'v3.5' " />
+    <Compile Include="LogFile.cs" />
     <Compile Include="MyWebClient.cs">
       <SubType>Component</SubType>
     </Compile>

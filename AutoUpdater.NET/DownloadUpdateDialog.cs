@@ -113,21 +113,28 @@ namespace AutoUpdaterDotNET
                 }
             }
 
-            if(File.Exists(fileFullPath))
+            try
             {
-                string deleteFile = fileFullPath + ".delTmp";
-                if(File.Exists(deleteFile))
+                if (File.Exists(fileFullPath))
                 {
-                    File.SetAttributes(deleteFile, FileAttributes.Normal);
-                    File.Delete(deleteFile);
-                }
+                    string deleteFile = fileFullPath + ".delTmp";
+                    if (File.Exists(deleteFile))
+                    {
+                        File.SetAttributes(deleteFile, FileAttributes.Normal);
+                        File.Delete(deleteFile);
+                    }
 
-                File.Move(fileFullPath, deleteFile);
-                File.Copy(tmpFileName, fileFullPath, true);
+                    File.Move(fileFullPath, deleteFile);
+                    File.Copy(tmpFileName, fileFullPath, true);
+                }
+                else
+                {
+                    File.Move(tmpFileName, fileFullPath);
+                }
             }
-            else
+            catch(Exception error)
             {
-                File.Move(tmpFileName, fileFullPath);
+                LogFile.Log(string.Format("[{0}] {1}", fileName, error.Message));
             }
 
             downloadCount++;

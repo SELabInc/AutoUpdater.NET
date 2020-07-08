@@ -9,8 +9,9 @@ namespace AutoUpdaterDotNET
     {
         static public void Log(String msg)
         {
-            string FilePath = Directory.GetCurrentDirectory() + @"\UpdateLogs\" + DateTime.Today.ToString("yyyyMMdd") + ".log";
-            string DirPath = Directory.GetCurrentDirectory() + @"\UpdateLogs";
+            string specialFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\QI4A";
+            string FilePath = specialFolder + @"\UpdateLogs\" + DateTime.Today.ToString("yyyyMMdd") + ".log";
+            string DirPath = specialFolder + @"\UpdateLogs";
             string temp;
 
             DirectoryInfo di = new DirectoryInfo(DirPath);

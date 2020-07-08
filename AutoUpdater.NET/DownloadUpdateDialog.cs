@@ -151,7 +151,8 @@ namespace AutoUpdaterDotNET
 
         private void MakeCompleteUpdateListFile()
         {
-            using (StreamWriter sw = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "update.txt")))
+            string specialFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\QI4A";
+            using (StreamWriter sw = new StreamWriter(specialFolder + @"\UpdateLogs\update.txt"))
             {
                 foreach(var name in updateList)
                 {

@@ -248,16 +248,23 @@ namespace AutoUpdaterDotNET
         /// <param name="path"></param>
         public static void DeleteTempFileList(string path)
         {
-            System.IO.DirectoryInfo dirInfo = new DirectoryInfo(path);
-            foreach (var file in dirInfo.GetFiles("*.delTmp"))
+            try
             {
-                File.Delete(file.FullName);
-            }
+                System.IO.DirectoryInfo dirInfo = new DirectoryInfo(path);
+                foreach (var file in dirInfo.GetFiles("*.delTmp"))
+                {
+                    File.Delete(file.FullName);
+                }
 
-            string[] dirs = Directory.GetDirectories(path);
-            foreach (string dir in dirs)
+                string[] dirs = Directory.GetDirectories(path);
+                foreach (string dir in dirs)
+                {
+                    DeleteTempFileList(dir);
+                }
+            }
+            catch(Exception e)
             {
-                DeleteTempFileList(dir);
+                LogFile.Log(e.Message);
             }
         }
 
@@ -291,6 +298,7 @@ namespace AutoUpdaterDotNET
 
                 AppCastURL = appCast;
 
+                LogFile.Log("Temp File Delete.");
                 DeleteTempFileList(Environment.CurrentDirectory);
 
                 IsWinFormsApplication = Application.MessageLoop;
@@ -322,7 +330,7 @@ namespace AutoUpdaterDotNET
                         backgroundWorker.DoWork += (sender, args) =>
                         {
                             Assembly mainAssembly = args.Argument as Assembly;
-
+                            LogFile.Log("Update Check Start");
                             args.Result = CheckUpdate(mainAssembly);
                         };
 
@@ -453,6 +461,7 @@ namespace AutoUpdaterDotNET
 
         private static bool StartUpdate(object result)
         {
+            LogFile.Log("Find Update");
             if (result is DateTime time)
             {
                 SetTimer(time);
@@ -476,6 +485,8 @@ namespace AutoUpdaterDotNET
                             }
                             else
                             {
+                                LogFile.Log("Update Window Open");
+
                                 if (Thread.CurrentThread.GetApartmentState().Equals(ApartmentState.STA))
                                 {
                                     ShowUpdateForm(args);

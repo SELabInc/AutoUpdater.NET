@@ -656,15 +656,17 @@ namespace AutoUpdaterDotNET
         public static bool DownloadUpdate(UpdateInfoEventArgs args)
         {
             Collection collection = new Collection();
-            //var localFileLsit = collection.GetUpdateFileList(Environment.CurrentDirectory);
+            //var localFileLsit1 = collection.GetUpdateFileList(Environment.CurrentDirectory);
+
             LogFile.Log("Local File Check");
-            var localFileList = collection.ReadUpdateFile(Path.Combine(Environment.CurrentDirectory, "UpdateList.xml"));
+            var localUpdateList = collection.ReadUpdateFile(Path.Combine(Environment.CurrentDirectory, "UpdateList.xml"));
+            localUpdateList = collection.setLocalFileList(localUpdateList);
 
             LogFile.Log("Server File Check");
             var serverList = collection.ReadUpdateFile(args.updateListUrl);
 
             LogFile.Log("Get Update List");
-            var updateList = collection.FileCompair(localFileList, serverList);
+            var updateList = collection.FileCompair(localUpdateList, serverList, "HASH");
 
             using (var downloadDialog = new DownloadUpdateDialog(args, updateList))
             {

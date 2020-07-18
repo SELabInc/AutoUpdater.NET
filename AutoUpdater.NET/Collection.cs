@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace QI4A.ZIP
@@ -16,7 +18,7 @@ namespace QI4A.ZIP
         /// <param name="localList"></param>
         /// <param name="serverList"></param>
         /// <returns></returns>
-        public List<FileModel> FileCompair(List<FileModel> localList, List<FileModel> serverList)
+        public List<FileModel> FileCompair(List<FileModel> localList, List<FileModel> serverList, string mode = "HASH")
         {
             Collection collection = new Collection();
             List<FileModel> updateList = new List<FileModel>();
@@ -35,10 +37,31 @@ namespace QI4A.ZIP
                     {
                         newFileCheck = false;
 
-                        bool hashCheck = localItem.Hash == serverItem.Hash;
-                        if (!hashCheck)
+                        if(mode == "HASH")
                         {
-                            updateList.Add(serverItem);
+                            bool hashCheck = localItem.Hash == serverItem.Hash;
+                            bool sizeCheck = localItem.Size == serverItem.Size;
+
+                            if (!hashCheck || !sizeCheck)
+                            {
+                                updateList.Add(serverItem);
+                                break;
+                            }
+
+                            if (localItem.LocalFile != null && !(localItem.LocalFile.Size == serverItem.Size))
+                            {
+                                updateList.Add(serverItem);
+                                break;
+                            }
+                        }
+                        else if(mode == "SIZE")
+                        {
+                            bool sizeCheck = localItem.Size == serverItem.Size;
+                            if (!sizeCheck)
+                            {
+                                updateList.Add(serverItem);
+                            }
+
                         }
 
                         break;
@@ -53,27 +76,56 @@ namespace QI4A.ZIP
 
             return updateList;
         }
+        
+        public List<FileModel> setLocalFileList(List<FileModel> xmlLocalList)
+        {
+            string path = Environment.CurrentDirectory;
+            var localList = GetUpdateFileList(path);
+
+            for(int i = 0; i < xmlLocalList.Count; i++)
+            {
+                for(int j = 0; j < localList.Count; j++)
+                {
+                    if(xmlLocalList[i].Name == localList[j].Name)
+                    {
+                        xmlLocalList[i].LocalFile = localList[j];
+                        break;
+                    }
+                }
+            }
+
+            return xmlLocalList;
+        }
+
 
         /// <summary>
         /// 업데이트 할 파일들의 리스트 수집
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public List<FileInfo> GetUpdateFileList(string path)
+        public List<FileModel> GetUpdateFileList(string path)
         {
-            List<FileInfo> fileList = new List<FileInfo>();
+            List<FileModel> fileList = new List<FileModel>();
             GetFileList(path, ref fileList);
-            WriteFileInfo(fileList);
+            //WriteFileInfo(fileList);
             return fileList;
         }
 
-        private void GetFileList(string path, ref List<FileInfo> fileList)
+        private void GetFileList(string path, ref List<FileModel> fileList)
         {
             System.IO.DirectoryInfo dirInfo = new DirectoryInfo(path);
             foreach (var file in dirInfo.GetFiles())
             {
                 string filePath = string.Format(@"{0}\{1}", path, file);
-                fileList.Add(new FileInfo(filePath));
+                var fileInfo = new FileInfo(filePath);
+                FileModel fileModel = new FileModel() {
+                    Size = fileInfo.Length.ToString(),
+                    Date = fileInfo.LastWriteTime.ToString(),
+                    Name = fileInfo.Name,
+                    Hash = ""                    
+                };
+
+                fileList.Add(fileModel);
             }
 
             string[] dirs = Directory.GetDirectories(path);

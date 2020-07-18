@@ -24,5 +24,10 @@
         /// 업데이트 파일의 고유값
         /// </summary>
         public string Hash { get; set; }
+
+        /// <summary>
+        /// 로컬의 파일 정보
+        /// </summary>
+        public FileModel LocalFile { get; set; }
     }
 }

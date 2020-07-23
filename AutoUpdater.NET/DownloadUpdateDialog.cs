@@ -146,6 +146,13 @@ namespace AutoUpdaterDotNET
                 updateSuccesCheck = true;
                 this.DialogResult = DialogResult.OK;
                 MessageBox.Show("Update Completed.");
+
+                Application.ExitThread();
+                Application.Exit();
+
+                System.Threading.Thread.Sleep(1000);
+                System.Diagnostics.Process.Start(Application.ExecutablePath);
+
             }
         }
 

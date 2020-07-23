@@ -57,6 +57,7 @@ namespace AutoUpdaterDotNET
 
             downloadMaxCount = _updateList.Count;
 
+
             LogFile.Log("Update File Download Start. " + _updateList.Count + "\n");
             foreach (var updateFile in _updateList)
             {
@@ -113,19 +114,26 @@ namespace AutoUpdaterDotNET
                 }
             }
 
+            string deleteDirPath = Path.Combine(filePath, "Temp\\");
+            DirectoryInfo deleteDir = new DirectoryInfo(deleteDirPath);
+            if(deleteDir.Exists == false)
+            {
+                deleteDir.Create();
+            }
+
             try
             {
                 if (File.Exists(fileFullPath))
                 {
-                    string deleteFile = fileFullPath + ".delTmp";
+                    string deleteFile = deleteDirPath + fileName + ".delTmp";
                     if (File.Exists(deleteFile))
                     {
                         File.SetAttributes(deleteFile, FileAttributes.Normal);
                         File.Delete(deleteFile);
                     }
 
-                    File.Move(fileFullPath, deleteFile);
-                    File.Copy(tmpFileName, fileFullPath, true);
+                    FileDelete(fileFullPath, deleteFile);
+                    File.Move(tmpFileName, fileFullPath);
                 }
                 else
                 {
@@ -147,14 +155,27 @@ namespace AutoUpdaterDotNET
                 this.DialogResult = DialogResult.OK;
                 MessageBox.Show("Update Completed.");
 
-                Application.ExitThread();
                 Application.Exit();
-
                 System.Threading.Thread.Sleep(1000);
                 System.Diagnostics.Process.Start(Application.ExecutablePath);
 
             }
         }
+
+        private void FileDelete(string fileFullPath, string deleteFile)
+        {
+            File.Move(fileFullPath, deleteFile);
+
+            try
+            {
+                File.Delete(deleteFile);
+            }
+            catch
+            {
+
+            }
+        }
+
 
         private void MakeCompleteUpdateListFile()
         {

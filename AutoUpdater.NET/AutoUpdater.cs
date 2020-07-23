@@ -242,6 +242,17 @@ namespace AutoUpdaterDotNET
         }
 
 
+        public static void DeleteTempFileDir()
+        {
+            string path = Path.Combine(Environment.CurrentDirectory, "Temp");
+            DirectoryInfo dirInfo = new DirectoryInfo(path);
+
+            if(dirInfo.Exists != false)
+            {
+                dirInfo.Delete(true);
+            }
+        }
+
         /// <summary>
         /// 임시 파일 삭제
         /// </summary>
@@ -299,7 +310,8 @@ namespace AutoUpdaterDotNET
                 AppCastURL = appCast;
 
                 LogFile.Log("Temp File Delete.");
-                DeleteTempFileList(Environment.CurrentDirectory);
+                DeleteTempFileDir();
+                //DeleteTempFileList(Environment.CurrentDirectory);
 
                 IsWinFormsApplication = Application.MessageLoop;
 

@@ -247,9 +247,16 @@ namespace AutoUpdaterDotNET
             string path = Path.Combine(Environment.CurrentDirectory, "Temp");
             DirectoryInfo dirInfo = new DirectoryInfo(path);
 
-            if(dirInfo.Exists != false)
+            try
             {
-                dirInfo.Delete(true);
+                if (dirInfo.Exists != false)
+                {
+                    dirInfo.Delete(true);
+                }
+            }
+            catch(Exception e)
+            {
+                LogFile.Log(e.Message);
             }
         }
 

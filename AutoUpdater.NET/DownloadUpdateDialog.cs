@@ -153,7 +153,7 @@ namespace AutoUpdaterDotNET
                 MakeCompleteUpdateListFile();
                 updateSuccesCheck = true;
                 this.DialogResult = DialogResult.OK;
-                MessageBox.Show("Update Completed.");
+                MessageBox.Show("Update Completed. \n(The program ends)");
                 Application.Exit();
                 //System.Threading.Thread.Sleep(3000);
                 //System.Diagnostics.Process.Start(Application.ExecutablePath);

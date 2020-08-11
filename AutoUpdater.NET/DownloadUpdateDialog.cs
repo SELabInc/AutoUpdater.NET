@@ -10,7 +10,9 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 using AutoUpdaterDotNET.Properties;
+using Microsoft.Win32;
 using QI4A.ZIP;
 
 namespace AutoUpdaterDotNET
@@ -21,7 +23,6 @@ namespace AutoUpdaterDotNET
         private int downloadCount = 0;
         private int downloadMaxCount = 0;
         private bool updateSuccesCheck = false;
-        private MyWebClient _webClient;
         private List<FileModel> _updateList;
         private List<string> updateList = new List<string>();
         delegate void ProgVarCall(int var);
@@ -29,7 +30,6 @@ namespace AutoUpdaterDotNET
         public DownloadUpdateDialog(UpdateInfoEventArgs args, List<FileModel> updateList)
         {
             InitializeComponent();
-
             _args = args;
             _updateList = updateList;
 
@@ -153,8 +153,56 @@ namespace AutoUpdaterDotNET
                 MakeCompleteUpdateListFile();
                 updateSuccesCheck = true;
                 this.DialogResult = DialogResult.OK;
+
+                string version = ReadUpdateVersion();
+                ChangeProgramVersion(version);
+               
                 MessageBox.Show("Update Completed. \n(The program ends)");
 
+            }
+        }
+
+
+
+        private string ReadUpdateVersion()
+        {
+            string path = Environment.CurrentDirectory + @"\UpdateList.xml";
+            string version = string.Empty;
+            if (File.Exists(path))
+            {
+                XmlDocument xmlDocument = new XmlDocument();
+                xmlDocument.Load(path);
+
+                XmlNode xmlNode = xmlDocument.SelectSingleNode("UpdateList");
+                version = xmlNode.Attributes["Version"].Value;
+            }
+
+            return version;
+        }
+
+
+        private void ChangeProgramVersion(string version)
+        {
+            RegistryKey reg = Registry.LocalMachine;
+            reg = reg.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
+            var subKeyNames = reg.GetSubKeyNames();
+
+            foreach(var subkey in subKeyNames)
+            {
+                var regKey = reg.OpenSubKey(subkey, true);
+                var displayNameKey = regKey.GetValue("DisplayName");
+                string displayNameValue = string.Empty;
+
+                if(displayNameKey != null)
+                {
+                    displayNameValue = displayNameKey.ToString();
+                }
+
+                if(displayNameValue == "QI4A")
+                {
+                    regKey.SetValue("BundleVersion", version, RegistryValueKind.String);
+                    regKey.SetValue("DisplayVersion", version);
+                }
             }
         }
 

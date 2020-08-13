@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Net.Cache;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
@@ -344,37 +345,41 @@ namespace AutoUpdaterDotNET
                 }
                 else
                 {
-                    using (var backgroundWorker = new BackgroundWorker())
-                    {
-                        backgroundWorker.DoWork += (sender, args) =>
-                        {
-                            Assembly mainAssembly = args.Argument as Assembly;
-                            LogFile.Log("Update Check Start");
-                            args.Result = CheckUpdate(mainAssembly);
-                        };
+                    var checkResult = CheckUpdate(assembly);
+                    bool updateStat = StartUpdate(checkResult);
 
-                        backgroundWorker.RunWorkerCompleted += (sender, args) =>
-                        {
-                            if (args.Error != null)
-                            {
-                                ShowError(args.Error);
-                            }
-                            else
-                            {
-                                if (!args.Cancelled)
-                                {
-                                    if (StartUpdate(args.Result))
-                                    {
-                                        return;
-                                    }
-                                }
-                            }
 
-                            Running = false;
-                        };
+                    //using (var backgroundWorker = new BackgroundWorker())
+                    //{
+                    //    backgroundWorker.DoWork += (sender, args) =>
+                    //    {
+                    //        Assembly mainAssembly = args.Argument as Assembly;
+                    //        LogFile.Log("Update Check Start");
+                    //        args.Result = CheckUpdate(mainAssembly);
+                    //    };
 
-                        backgroundWorker.RunWorkerAsync(assembly);
-                    }
+                    //    backgroundWorker.RunWorkerCompleted += (sender, args) =>
+                    //    {
+                    //        if (args.Error != null)
+                    //        {
+                    //            ShowError(args.Error);
+                    //        }
+                    //        else
+                    //        {
+                    //            if (!args.Cancelled)
+                    //            {
+                    //                if (StartUpdate(args.Result))
+                    //                {
+                    //                    return;
+                    //                }
+                    //            }
+                    //        }
+
+                    //        Running = false;
+                    //    };
+
+                    //    backgroundWorker.RunWorkerAsync(assembly);
+                    //}
                 }
             }
         }
@@ -506,19 +511,21 @@ namespace AutoUpdaterDotNET
                             {
                                 LogFile.Log("Update Window Open");
 
-                                if (Thread.CurrentThread.GetApartmentState().Equals(ApartmentState.STA))
-                                {
-                                    ShowUpdateForm(args);
-                                }
-                                else
-                                {
-                                    Thread thread = new Thread(new ThreadStart(delegate { ShowUpdateForm(args); }));
-                                    thread.CurrentCulture =
-                                        thread.CurrentUICulture = CultureInfo.CurrentCulture;
-                                    thread.SetApartmentState(ApartmentState.STA);
-                                    thread.Start();
-                                    thread.Join();
-                                }
+                                ShowUpdateForm(args);
+
+                                //if (Thread.CurrentThread.GetApartmentState().Equals(ApartmentState.STA))
+                                //{
+                                //    ShowUpdateForm(args);
+                                //}
+                                //else
+                                //{
+                                //    Thread thread = new Thread(new ThreadStart(delegate { ShowUpdateForm(args); }));
+                                //    thread.CurrentCulture =
+                                //        thread.CurrentUICulture = CultureInfo.CurrentCulture;
+                                //    thread.SetApartmentState(ApartmentState.STA);
+                                //    thread.Start();
+                                //    thread.Join();
+                                //}
                             }
 
                             return true;

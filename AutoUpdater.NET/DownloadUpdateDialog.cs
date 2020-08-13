@@ -168,13 +168,19 @@ namespace AutoUpdaterDotNET
         {
             string path = Environment.CurrentDirectory + @"\UpdateList.xml";
             string version = string.Empty;
+
             if (File.Exists(path))
             {
                 XmlDocument xmlDocument = new XmlDocument();
                 xmlDocument.Load(path);
 
                 XmlNode xmlNode = xmlDocument.SelectSingleNode("UpdateList");
-                version = xmlNode.Attributes["Version"].Value;
+                var xmlValue = xmlNode.Attributes["Version"];
+
+                if(xmlValue != null)
+                {
+                    version = xmlValue.Value;
+                }
             }
 
             return version;

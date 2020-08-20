@@ -12,6 +12,9 @@ namespace QI4A.ZIP
     /// </summary>
     public class Collection
     {
+        private string[] updateExceptList = new string[] { "x86", "x64" };
+
+
         /// <summary>
         /// 업데이트 할 파일들의 비교
         /// </summary>
@@ -27,6 +30,12 @@ namespace QI4A.ZIP
             {
                 bool newFileCheck = true;
                 var serverItem = serverList[i];
+
+                bool exceptCheck = UpdateExceptFileCheck(serverItem.Name);
+                if(!exceptCheck)
+                {
+                    continue;
+                }
 
                 for (int j = 0; j < localList.Count; j++)
                 {
@@ -97,6 +106,30 @@ namespace QI4A.ZIP
             return xmlLocalList;
         }
 
+        /// <summary>
+        /// 예외 파일 처리
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public bool UpdateExceptFileCheck(string fileName)
+        {
+            var fileSplit = fileName.Split('\\');
+
+            if(fileSplit.Length == 1)
+            {
+                return true;
+            }
+
+            for(int i = 0; i < updateExceptList.Length; i++)
+            {
+                if(fileSplit[0] == updateExceptList[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// 업데이트 할 파일들의 리스트 수집
@@ -211,6 +244,7 @@ namespace QI4A.ZIP
                 };
                 fileModels.Add(model);
             }
+
 
             return fileModels;
         }
